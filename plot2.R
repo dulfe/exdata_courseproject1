@@ -1,3 +1,7 @@
+warnSetting = options("warn")
+
+options("warn" = -1)
+
 # Loads core functions if required
 if (!exists("drawPlot2")) {
     source("core.R");
@@ -7,3 +11,6 @@ if (!exists("drawPlot2")) {
 outputPlot(drawPlot2, getData(), "plot2.png");
 
 message("plot2.png has been created.")
+
+options("warn" = warnSetting[[1]])
+rm(warnSetting)

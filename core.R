@@ -1,3 +1,15 @@
+# Install/Load SQLDF Package
+sqldfFlag <- require("sqldf");
+
+if (!sqldfFlag) {
+    message("Required package 'sqldf' could not be found, trying to install it.")
+    install.packages("sqldf");
+}
+
+rm(sqldfFlag)
+
+library(sqldf)
+
 # Downloads the data from the remote server if the file does not exists (and uncompress it)
 #
 # fileName: File name to be created based on the remote payload.
@@ -14,25 +26,18 @@ downloadData <- function(fileName) {
 # Process the data (Loads, transform, filters and creates a cache file)
 #
 # fileName: Full Data file name
-# cacheFileName: Cache file name
-processData <- function (fileName, cacheFileName) {
-    message("Loading data...");
-    fullData <- read.table(fileName, TRUE, ";", na.strings="?");
+processData <- function(fileName, cacheFileName) {
+    message("Loading and Filtering data...");
+    data <- read.csv.sql(file = fileName, sep = ";", sql = "select * from file where Date = '1/2/2007' or Date = '2/2/2007'");
 
     message("Transforming...");
-    fullData$DateTime <- strptime(paste(fullData$Date, fullData$Time), "%d/%m/%Y %H:%M:%S")
-    fullData$Date = as.Date(fullData$Date, "%d/%m/%Y");
-
-    message("Filtering...");
-    data <- subset(fullData, fullData$Date >= as.Date("2007-2-1") & fullData$Date <= as.Date("2007-2-2"));
-
-    message("Cleaning...");
-    rm(fullData);
+    data$DateTime <- strptime(paste(data$Date, data$Time), "%d/%m/%Y %H:%M:%S")
+    data$Date = as.Date(data$Date, "%d/%m/%Y");
 
     message("Saving processed data (cache)...");
     write.csv(data, cacheFileName, row.names = FALSE);
 
-    message("Data processed");
+    message("Data loaded");
     data;
 }
 
@@ -48,8 +53,7 @@ getCachedData <- function(cacheFileName) {
     data;
 }
 
-# Gets the data either from the remote server or the cache file.
-getData <- function () {
+getData <- function() {
     reload = TRUE;
     compressedFileName = "household_power_consumption.zip";
     uncompressFileName = "household_power_consumption.txt";
